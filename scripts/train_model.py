@@ -16,6 +16,10 @@ def train_model():
     # load cleaned data
     df = load_preprocessed_data()
 
+    # handle NaN values in 'cleaned_text' by filling with an empty string
+    df['cleaned_text'].fillna('', inplace=True)
+
+
     # features (X) and target (y)
     X = df['cleaned_text']
     y = df['target']

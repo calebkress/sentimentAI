@@ -62,20 +62,15 @@ def load_data():
     except FileNotFoundError:
         print(f"File not found: {raw_data_path}. Please check the file path.")
         return None
-    # assign column names to dataset
-    df.columns = ['target', 'id', 'date', 'flag', 'user', 'text']
-    
-    return 
 
 # preprocess dataset in chunks to accommodate weaker systems
 def preprocess_data():
-    chunk_size = 100000 # change this to accomomodate your system
+    chunk_size = 100000  # Change this to accommodate your system
     raw_data_path = '../data/raw/sentiment140.csv'
     processed_data_path = '../data/processed/cleaned_data.csv'
     
-    # create empty CSV file to store processed data
-    with open(processed_data_path, 'w') as f:
-        pass
+    # boolean flag to indicate whether header should be written
+    first_chunk = True
 
     for chunk in pd.read_csv(raw_data_path, encoding='ISO-8859-1', header=None, chunksize=chunk_size):
         # assign column names to chunk
@@ -85,7 +80,11 @@ def preprocess_data():
         chunk['cleaned_text'] = chunk['text'].apply(clean_tweet)
         
         # save processed chunk to processed data file
-        chunk[['cleaned_text', 'target']].to_csv(processed_data_path, mode='a', header=False, index=False)
+        if first_chunk:
+            chunk[['cleaned_text', 'target']].to_csv(processed_data_path, mode='w', header=True, index=False)
+            first_chunk = False  # after first chunk, only append without headers
+        else:
+            chunk[['cleaned_text', 'target']].to_csv(processed_data_path, mode='a', header=False, index=False)
         
         print(f'Processed chunk of size {chunk_size} rows.')
 
