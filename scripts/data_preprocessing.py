@@ -67,21 +67,27 @@ def load_data():
     
     return 
 
-# preprocess dataset
+# preprocess dataset in chunks to accommodate weaker systems
 def preprocess_data():
-    # load raw data
-    df = load_data()
-    
-    # clean tweet text
-    df['cleaned_text'] = df['text'].apply(clean_tweet)
-
-    # drop unnecessary columns
-    df_processed = df[['cleaned_text', 'target']]
-    
-    # save processed data to processed folder
+    chunk_size = 100000 # change this to accomomodate your system
+    raw_data_path = '../data/raw/sentiment140.csv'
     processed_data_path = '../data/processed/cleaned_data.csv'
-    df_processed.to_csv(processed_data_path, index=False)
-    print(f'Processed data saved to {processed_data_path}')
+    
+    # create empty CSV file to store processed data
+    with open(processed_data_path, 'w') as f:
+        pass
+
+    for chunk in pd.read_csv(raw_data_path, encoding='ISO-8859-1', header=None, chunksize=chunk_size):
+        # assign column names to chunk
+        chunk.columns = ['target', 'id', 'date', 'flag', 'user', 'text']
+        
+        # clean text in chunk
+        chunk['cleaned_text'] = chunk['text'].apply(clean_tweet)
+        
+        # save processed chunk to processed data file
+        chunk[['cleaned_text', 'target']].to_csv(processed_data_path, mode='a', header=False, index=False)
+        
+        print(f'Processed chunk of size {chunk_size} rows.')
 
 if __name__ == '__main__':
     preprocess_data()
