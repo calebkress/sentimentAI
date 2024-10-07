@@ -1,6 +1,6 @@
 import joblib
 import pandas as pd
-from scripts.news_fetcher import get_news_articles
+from news_fetcher import get_news_articles
 
 # load traned model and vectorizer
 model = joblib.load('../models/sentiment_model.pkl')
