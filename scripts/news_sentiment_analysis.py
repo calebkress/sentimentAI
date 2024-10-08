@@ -1,6 +1,14 @@
+import sys
+import os
+
+# add project root to sys.path manually
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+print(f"sys.path in news_sentiment_analysis: {sys.path}")
+
 import joblib
 import pandas as pd
-from news_fetcher import get_news_articles
+from .news_fetcher import get_news_articles
 
 # load traned model and vectorizer
 model = joblib.load('../models/sentiment_model.pkl')
