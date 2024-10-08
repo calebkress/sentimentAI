@@ -1,9 +1,22 @@
+import sys
+import os
+
+# add project root to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+print("sys.path:", sys.path)
+print("Current working directory:", os.getcwd())
+
 from flask import Flask, render_template, jsonify
 from scripts.news_fetcher import get_news_articles
 from scripts.news_sentiment_analysis import analyze_sentiment_for_news
 
 
 app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/get_sentiment_data')
 def get_sentiment_data():
