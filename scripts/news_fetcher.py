@@ -9,6 +9,11 @@ load_dotenv()
 # get API key from .env
 api_key = os.getenv('NEWSAPI_KEY')
 
+# check if API key is loaded correctly
+if not api_key:
+    raise ValueError("API key not found. Check your .env file.")
+
+
 # fetch news articles
 def get_news_articles(query, from_date, to_date, page_size=100):
     url = 'https://newsapi.org/v2/everything'
@@ -20,6 +25,9 @@ def get_news_articles(query, from_date, to_date, page_size=100):
         'pageSize': page_size,
         'apiKey': api_key
     }
+
+    # print API key to verify it's being used (for debugging)
+    print(f"Using API Key: {api_key}")
 
     response = requests.get(url, params=params)
 
