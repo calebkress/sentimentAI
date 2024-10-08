@@ -25,8 +25,10 @@ def analyze_sentiment_for_news(articles_df):
 if __name__ == '__main__':
     # fetch articles using news_fetcher.py function
     query = 'artificial intelligence'  # update query for each use case
-    from_date = '2023-09-01'
-    to_date = '2023-10-01'
+    # NewsAPI restricts free tier access to 1 month prior to runtime
+    # change date range as required (in case of 426 error)
+    from_date = '2024-10-01'
+    to_date = '2024-10-04'
     
     # fetch news articles
     articles_df = get_news_articles(query, from_date, to_date)
