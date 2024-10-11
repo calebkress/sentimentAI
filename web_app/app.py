@@ -1,3 +1,4 @@
+from flask import Flask, render_template, request, jsonify
 import sys
 import os
 
@@ -7,10 +8,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 print("sys.path:", sys.path)
 print("Current working directory:", os.getcwd())
 
-from flask import Flask, render_template, jsonify
 from scripts.news_fetcher import get_news_articles
 from scripts.news_sentiment_analysis import analyze_sentiment_for_news
-
 
 app = Flask(__name__)
 
@@ -18,12 +17,13 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
-@app.route('/get_sentiment_data')
+@app.route('/get_sentiment_data', methods=['POST'])
 def get_sentiment_data():
-    # TODO: replace these values with user data
-    query = 'artificial intelligence'
-    from_date = '2024-09-15'
-    to_date = '2024-10-07'
+    # get user input from the JSON request body
+    user_input = request.get_json()
+    query = user_input['topic']
+    from_date = user_input['from_date']
+    to_date = user_input['to_date']
     
     # fetch & analyze news articles
     articles_df = get_news_articles(query, from_date, to_date)

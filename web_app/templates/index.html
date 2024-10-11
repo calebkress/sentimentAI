@@ -5,59 +5,156 @@
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>News Sentiment Analysis</title>
     <script src='https://d3js.org/d3.v7.min.js'></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            width: 300px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        label, input {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #pie-chart {
+            width: 400px;
+            height: 400px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body>
     <h1>News Sentiment Analysis</h1>
+
+    <!-- Form for User Input -->
+    <form id="sentiment-form">
+        <label for="topic">Topic:</label>
+        <input type="text" id="topic" name="topic" placeholder="Enter a topic" required>
+        <br><br>
+
+        <label for="from_date">From Date:</label>
+        <input type="date" id="from_date" name="from_date" required>
+        <br><br>
+
+        <label for="to_date">To Date:</label>
+        <input type="date" id="to_date" name="to_date" required>
+        <br><br>
+
+        <button type="submit">Analyze</button>
+    </form>
+
     <div id='pie-chart'></div>
     <div id='line-chart'></div>
 
     <script>
-        // fetch sentiment data from Flask
-        fetch('/get_sentiment_data')
-        .then(response => response.json())
-        .then(data => {
-            // process positive & negative count data for pie chart
-            const sentimentCounts = d3.rollup(data, v => v.length, d => d.sentiment_label);
-            const pieData = Array.from(sentimentCounts, ([label, count]) => ({ label, count }));
+        document.getElementById('sentiment-form').addEventListener('submit', function(event) {
+            event.preventDefault(); 
 
-            // create pie chart
-            const width = 400
-            const height = 400
-            const radius = Math.min(width, height) / 2
-            // setup svg
-            const svg = d3.select('#pie-chart')
-                          .append('svg')
-                          .attr('width', width)
-                          .attr('height', height)
-                          .append('g')
-                          .attr('transform', `translate(${width / 2}, ${height / 2})`)
+            const topic = document.getElementById('topic').value;
+            const fromDate = document.getElementById('from_date').value;
+            const toDate = document.getElementById('to_date').value;
 
-            const pie = d3.pie().value(d => d.count)
-            const arc = d3.arc().innerRadius(0).outerRadius(radius)
-            // set color scheme
-            const color = d3.scaleOrdinal()
-                            .domain(pieData.map(d => d.label))
-                            .range(d3.schemeSet2)
-            // initiate enter/append cycle
-            svg.selectAll('path')
-               .data(pie(pieData))
-               .enter()
-               .append('path')
-               .attr('d', arc)
-               .attr('fill', d => color(d.data.label))
-               .attr('stroke', 'white')
-               .style('stroke-width', '2px')
-            // label pie chart
-            svg.selectAll('text')
-               .data(pie(pieData))
-               .enter()
-               .append('text')
-               .attr('transform', d => `translate(${arc.centroid(d)})`)
-               .attr('dy', '0.35em')
-               .style('text-anchor', 'middle')
-               .text(d => `${d.data.label}: ${d.data.count}`)
-        })
-        .catch(error => console.error('Error fetching sentiment data:', error))
+            // fetch sentiment data with user input
+            fetch('/get_sentiment_data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topic: topic, from_date: fromDate, to_date: toDate })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // clear previous chart
+                d3.select('#pie-chart').selectAll('*').remove();
+
+                // process positive & negative count data
+                const sentimentCounts = d3.rollup(data, v => v.length, d => d.sentiment_label);
+                const pieData = Array.from(sentimentCounts, ([label, count]) => ({ label, count }));
+
+                // create pie chart
+                const width = 400;
+                const height = 400;
+                const radius = Math.min(width, height) / 2;
+
+                // setup svg
+                const svg = d3.select('#pie-chart')
+                              .append('svg')
+                              .attr('width', width)
+                              .attr('height', height)
+                              .append('g')
+                              .attr('transform', `translate(${width / 2}, ${height / 2})`);
+
+                const pie = d3.pie().value(d => d.count);
+                const arc = d3.arc().innerRadius(0).outerRadius(radius);
+
+                // set color scheme
+                const color = d3.scaleOrdinal()
+                                .domain(pieData.map(d => d.label))
+                                .range(d3.schemeSet2);
+
+                // initiate enter/append cycle
+                svg.selectAll('path')
+                   .data(pie(pieData))
+                   .enter()
+                   .append('path')
+                   .attr('d', arc)
+                   .attr('fill', d => color(d.data.label))
+                   .attr('stroke', 'white')
+                   .style('stroke-width', '2px');
+
+                // label pie chart
+                svg.selectAll('text')
+                   .data(pie(pieData))
+                   .enter()
+                   .append('text')
+                   .attr('transform', d => `translate(${arc.centroid(d)})`)
+                   .attr('dy', '0.35em')
+                   .style('text-anchor', 'middle')
+                   .text(d => `${d.data.label}: ${d.data.count}`);
+            })
+            .catch(error => console.error('Error fetching sentiment data:', error));
+        });
     </script>
 </body>
 </html>
