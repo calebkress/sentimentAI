@@ -5,6 +5,66 @@
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>News Sentiment Analysis</title>
     <script src='https://d3js.org/d3.v7.min.js'></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            width: 300px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        label, input {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #pie-chart {
+            width: 400px;
+            height: 400px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body>
     <h1>News Sentiment Analysis</h1>
@@ -30,15 +90,14 @@
     <div id='line-chart'></div>
 
     <script>
-        // Form submission handler
         document.getElementById('sentiment-form').addEventListener('submit', function(event) {
-            event.preventDefault();  // Prevent default form submission
+            event.preventDefault(); 
 
             const topic = document.getElementById('topic').value;
             const fromDate = document.getElementById('from_date').value;
             const toDate = document.getElementById('to_date').value;
 
-            // Fetch sentiment data from Flask with user input
+            // fetch sentiment data with user input
             fetch('/get_sentiment_data', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -46,19 +105,19 @@
             })
             .then(response => response.json())
             .then(data => {
-                // Clear previous chart
+                // clear previous chart
                 d3.select('#pie-chart').selectAll('*').remove();
 
-                // Process positive & negative count data for pie chart
+                // process positive & negative count data
                 const sentimentCounts = d3.rollup(data, v => v.length, d => d.sentiment_label);
                 const pieData = Array.from(sentimentCounts, ([label, count]) => ({ label, count }));
 
-                // Create pie chart
+                // create pie chart
                 const width = 400;
                 const height = 400;
                 const radius = Math.min(width, height) / 2;
 
-                // Setup svg
+                // setup svg
                 const svg = d3.select('#pie-chart')
                               .append('svg')
                               .attr('width', width)
@@ -69,12 +128,12 @@
                 const pie = d3.pie().value(d => d.count);
                 const arc = d3.arc().innerRadius(0).outerRadius(radius);
 
-                // Set color scheme
+                // set color scheme
                 const color = d3.scaleOrdinal()
                                 .domain(pieData.map(d => d.label))
                                 .range(d3.schemeSet2);
 
-                // Initiate enter/append cycle
+                // initiate enter/append cycle
                 svg.selectAll('path')
                    .data(pie(pieData))
                    .enter()
@@ -84,7 +143,7 @@
                    .attr('stroke', 'white')
                    .style('stroke-width', '2px');
 
-                // Label pie chart
+                // label pie chart
                 svg.selectAll('text')
                    .data(pie(pieData))
                    .enter()
