@@ -28,6 +28,8 @@ def analyze_sentiment_for_news(articles_df):
     # map sentiment (0 = negative, 4 = positive)
     articles_df['sentiment_label'] = articles_df['sentiment'].map({0: 'Negative', 4: 'Positive'})
     
+    print(articles_df[['cleaned_content', 'sentiment_label']].head(30))
+
     return articles_df[['title', 'publishedAt', 'sentiment_label']]
 
 if __name__ == '__main__':
